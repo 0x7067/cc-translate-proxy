@@ -209,6 +209,10 @@ With those settings, English input in Claude Code is translated to Simplified Ch
 uv run pytest -v
 ```
 
+## Acknowledgments
+
+This repository is based on the original [GGGODLIN/cc-translate-proxy](https://github.com/GGGODLIN/cc-translate-proxy) project. The original project introduced the Claude Code sidecar proxy, Traditional Chinese-to-English translation flow, provider chain, audit logs, render UI, and `/intl` session workflow.
+
 ## License
 
 MIT. See [LICENSE](LICENSE).
