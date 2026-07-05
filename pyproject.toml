@@ -23,9 +23,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/GGGODLIN/cc-translate-proxy"
-Repository = "https://github.com/GGGODLIN/cc-translate-proxy"
-Issues = "https://github.com/GGGODLIN/cc-translate-proxy/issues"
+Homepage = "https://github.com/0x7067/cc-translate-proxy"
+Repository = "https://github.com/0x7067/cc-translate-proxy"
+Issues = "https://github.com/0x7067/cc-translate-proxy/issues"
 
 [build-system]
 requires = ["hatchling"]

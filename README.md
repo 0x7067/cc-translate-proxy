@@ -1,17 +1,29 @@
 # cc-translate-proxy
 
-讓 [Claude Code](https://claude.com/claude-code) 用英文跟 Anthropic 對話、你用繁中讀寫的 sidecar 翻譯 proxy。
+讓 [Claude Code](https://claude.com/claude-code) 的本機介面語言跟送進 Claude 的語言分開的 sidecar 翻譯 proxy。
+
+公開 repo：https://github.com/0x7067/cc-translate-proxy
+
+目前有兩種常用跑法：
+
+- `chinese-claude`：你在 Claude Code 裡用英文讀寫；Claude-facing 的 user / assistant history 是簡中；不需要 `/intl`。
+- 手動 `/intl`：你用繁中 prompt；proxy 送英文給 Claude，英文回覆留給 Claude Code，繁中 render 另外顯示在本機網頁。
 
 ![cc-translate-proxy demo — 一段對話，兩種語言](screenshots/brag-demo.gif)
 
 ## 為什麼做這個
+
+核心問題是：Claude Code 本機看到的語言，不一定要跟模型上下文裡的語言綁在一起。最早的動機來自繁中使用者想把 Claude-facing context 維持在英文；後來也加了英文介面、簡中 upstream 的反向模式。
 
 兩件事讓我覺得值得寫個 sidecar：
 
 1. **Claude Code 用英文比中文穩**。Anthropic 自家 [multilingual benchmark](https://platform.claude.com/docs/en/build-with-claude/multilingual-support) 顯示 Sonnet 4.5 中文（簡）對英文 MMLU 是 96.9%；最近一篇 [vibe coding 實測論文](https://arxiv.org/abs/2604.14210) 也指出中文 prompt 的問題解決率比英文低 4.5–9.9 個百分點。同樣語意中文 token 數還更多（[Petrov et al. 2023](https://arxiv.org/abs/2305.15425) 量過跨語 token 數可差 15x）。再加上 cc 會跟著「最後一句的語言」調整輸出，中英混打很容易把整段對話拉進中文模式。
 2. **Sonnet 偶爾會自己切到韓文 / 日文**。這是已知 bug，繁中使用者在 [#30025](https://github.com/anthropics/claude-code/issues/30025)（中文中突切韓文）跟 [#46846](https://github.com/anthropics/claude-code/issues/46846)（CLAUDE.md 明寫繁中仍回日文）都有重現案例。光靠 prompt / CLAUDE.md 提醒治不住。
 
-這個 proxy 介在 cc 跟 `api.anthropic.com` 中間：你打的繁中先翻成英文再送過去；模型回的英文一邊原樣回 cc，一邊翻成繁中渲染在本機網頁上。**CC 那邊的對話 100% 英文**（便宜、穩定、不會自己切日韓文），**你這邊讀到的 100% 繁中**。
+這個 proxy 介在 cc 跟 `api.anthropic.com` 中間，依模式翻譯 user prompt、assistant 回覆和後續 history：
+
+- 手動 `/intl` 模式：繁中 prompt 先翻成英文再送過去；模型回的英文原樣回 cc，另一份翻成繁中渲染在本機網頁上。
+- 背景反向模式：英文 prompt 先翻成簡中再送過去；模型回的簡中翻回英文再回到 Claude Code TUI。
 
 ## 截圖
 
@@ -45,7 +57,7 @@ CC 看到乾淨英文對話；你瀏覽器讀到繁中 render。
 
 1. Clone 跟安裝：
    ```bash
-   git clone https://github.com/gggodlin/cc-translate-proxy.git
+   git clone https://github.com/0x7067/cc-translate-proxy.git
    cd cc-translate-proxy
    uv sync
    ```
