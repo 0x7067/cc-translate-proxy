@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# Launch Claude Code through the running cc-translate-proxy.
+set -euo pipefail
+
+SCRIPT_PATH="${BASH_SOURCE[0]}"
+while [[ -L "$SCRIPT_PATH" ]]; do
+  LINK_TARGET="$(readlink "$SCRIPT_PATH")"
+  if [[ "$LINK_TARGET" == /* ]]; then
+    SCRIPT_PATH="$LINK_TARGET"
+  else
+    SCRIPT_PATH="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)/$LINK_TARGET"
+  fi
+done
+ROOT="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+
+CC_I18N_PROXY_PORT="${CC_I18N_PROXY_PORT:-8080}"
+ANTHROPIC_BASE_URL="http://localhost:${CC_I18N_PROXY_PORT}"
+ENABLE_TOOL_SEARCH="${ENABLE_TOOL_SEARCH:-auto}"
+
+export ANTHROPIC_BASE_URL
+export ENABLE_TOOL_SEARCH
+
+if ! command -v claude >/dev/null 2>&1; then
+  echo "claude is required and was not found on PATH." >&2
+  exit 1
+fi
+
+port_open() {
+  local port="$1"
+  (exec 3<>"/dev/tcp/127.0.0.1/${port}") >/dev/null 2>&1
+}
+
+if ! port_open "$CC_I18N_PROXY_PORT"; then
+  cat >&2 <<EOF
+cc-translate-proxy is not reachable at $ANTHROPIC_BASE_URL.
+Start it first:
+  $ROOT/scripts/proxy-background.sh start
+EOF
+  exit 1
+fi
+
+if [[ "${1:-}" == "--print-env" ]]; then
+  shift
+  echo "ANTHROPIC_BASE_URL=$ANTHROPIC_BASE_URL"
+  echo "ENABLE_TOOL_SEARCH=$ENABLE_TOOL_SEARCH"
+  printf 'claude'
+  for arg in "$@"; do
+    printf ' %q' "$arg"
+  done
+  printf '\n'
+  exit 0
+fi
+
+exec claude "$@"
